@@ -1,153 +1,93 @@
-Sub Vol()
+Sub Stock()
 
-  ' Set an initial variable for Ticker
-    Dim Ticker_ As String
-
-  ' Set an initial variable for holding the total per Volume
-    Dim Vol_Total As Double
-    Vol_Total = 0
-  
-  ' Keep track of the location for each Ticker in the summary table
-    Dim Summary_Table_Row As Integer
-    Summary_Table_Row = 2
-
-    Dim IRow As Long
-    
-    'Find the last non-blank cell in column A(1)
-   IRow = Cells(Rows.Count, 1).End(xlUp).Row
-
-  
-    ' Loop through the values in Ticker Symbol
-    For i = 2 To IRow
+'begin loop to move through all of the worksheets in the workbook
+For Each ws In Worksheets
  
-     ' Check if we are still within the same Ticker, if it is not...
-    If Cells(i + 1, 1).Value <> Cells(i, 1).Value Then
+    'Create variable to count the number of shareholders per Ticker
+    Dim VolCount As Double
 
-          ' Set the Ticker name
-          Ticker_ = Cells(i, 1).Value
-    
-          ' Add to the Volume Total
-          Vol_Total = Vol_Total + Cells(i, 7).Value
-    
-          ' Print the Ticker in the Summary Table
-          Range("I" & Summary_Table_Row).Value = Ticker_
-    
-          ' Print the Volume Sum to the Summary Table
-          Range("L" & Summary_Table_Row).Value = Vol_Total
-    
-          ' Add one to the summary table row
-          Summary_Table_Row = Summary_Table_Row + 1
-          
-          ' Reset the Vol Total
-          Vol_Total = 0
-          
-       ' If the cell immediately following a row is the same brand...
-        Else
-    
-          ' Add to the Vol Total
-          Vol_Total = Vol_Total + Cells(i, 3).Value
-
-        End If
-        
-
-        Next i
-    
-    End Sub
-
-' -----------------------------------
-
-    Sub YrChange()
-
-  ' Set an initial variable for Ticker
-    Dim Ticker_ As String
-    Dim Open_ as Double
-    Dim Close_ as Double
-
-  ' Set an initial variable for holding the total per Volume
-    Dim YrCh_Total As Double
-    YrCh_Total = 0
-
-    Dim IRow As Long
-    
-    'Find the last non-blank cell in column 10
-    IRow = Cells(Rows.Count, 10).End(xlUp).Row
-  
-  ' Keep track of the location for each Ticker in the summary table
+    'Create variable for calculations
+    Dim TickerTotal As Double
+    Dim Ticker As String
+    Dim Start_price As Double
+    Dim End_Price As Double
     Dim Summary_Table_Row As Integer
+    
+    'get row count and last row and summary row count
+    Dim Count_Row As Double
+    Dim Last_Row As Double
+    Dim Summary_LastRow As Double
+    
+    
+    'Set values
+    VolCount = 0
+    TickerTotal = 0
     Summary_Table_Row = 2
-  
-    ' Loop through the values in Ticker Symbol
-    For i = 2 To IRow
+    
+     'calculate the number of rows per sheet
+    Last_Row = ws.Cells(Rows.Count, 1).End(xlUp).Row
  
-     ' Check if we are still within the same Ticker, if it is not...
-    If Cells(i + 1, 1).Value <> Cells(i, 1).Value Then
+ 
+   'calculate number for the last row per sheet
+    Summary_LastRow = Cells(Rows.Count, 10).End(xlUp).Row
+   
 
-          ' Set the Ticker name
-          Ticker_ = Cells(i, 1).Value
+
+    'assign a column headers and formatting
+    ws.Cells(1, 9).Value = "Ticker"
+    ws.Cells(1, 10).Value = "Yearly Change"
+    ws.Cells(1, 11).Value = "Percent Change"
+    ws.Cells(1, 12).Value = "Total Stock Volume"
+    ws.Cells(1, 15).Value = "Ticker"
+    ws.Cells(1, 16).Value = "Amount"
+
+    'set row count
+    Count_Row = 2
     
-          ' Divide open by close
-          YrCh_Total = Cells(i,3) / Cells(i,6).Value
     
-          ' Print the Sum YrChange to the Summary Table
-          Range("J" & Summary_Table_Row).Value = YrCh
-    
-          ' Add one to the summary table row
-          Summary_Table_Row = Summary_Table_Row + 1
-          
-          ' Reset the Year Change %
-          YrCh = 0
-          
-       ' If the cell immediately following a row is the same brand...
+    'loop through all stocks
+    For i = 2 To Last_Row
+        
+        'comapre "ticker" column to cell below
+        If ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then
+            
+            'ticker name
+            Ticker = ws.Cells(i, 1).Value
+        
+            'Get  total of the number of shares
+            TickerTotal = TickerTotal + ws.Cells(i, 7).Value
+        
+            'get value of final and begin price of the year
+            End_Price = ws.Cells(i, 6).Value
+            Start_price = ws.Cells(i - VolCount, 3).Value
+              
+            'put the ticker next row on column I
+            ws.Range("I" & Summary_Table_Row).Value = Ticker
+                    
+            'put the Total Shares in next row on column L
+            ws.Range("L" & Summary_Table_Row).Value = TickerTotal
+                                   
+            'put $amount changed from beginning of year to end of year in the next row on column J
+            ws.Range("J" & Summary_Table_Row).Value = End_Price - Start_price
+            
+                'Add next line to eliminate division by zero error
+                If Start_price <> 0 Then
+                ws.Range("K" & Summary_Table_Row).Value = 100 * ((End_Price - Start_price) / Abs(Start_price))
+               
+                
+                End If
+            'reset VolCount and ticker total start new row calculation
+            VolCount = 0
+            TickerTotal = 0
+            Summary_Table_Row = Summary_Table_Row + 1
+
+        
         Else
-    
-          ' Add to the Year Change
-          YrCh = YrCh / Cells(i, 6).Value
-
-        End If
         
-
-        Next i
-    
-    End Sub
-' -------------------------------
-
-Sub formatter()
-
-  Dim i, j As Integer
-  cellnumber = 1
-
-    Dim IRow As Long
-    
-    'Find the last non-blank cell in column 10
-    IRow = Cells(Rows.Count, 8).End(xlUp).Row
-
-
-    ' Loop through each row 
-  For i = 1 to IRow
-
-    ' Loop through each column 
-    For j = 8 to 8
-
-  ' Check if the % is positive...
-     If Cells(i, 8).Value > 0 Then
-
-      ' Color green
-         Cells(i, 8).Interior.ColorIndex = 4
-
-    Else
-      ' Else color red
-       Cells(i, 8).Value = <=-1 Then
-
-      ' Color the red
-      Cells(i, 8).Interior.ColorIndex = 3
-
-    End if
-        
-        Next j
-
-      Next i
-
-
-End Sub
+            'Set the ticker total to the value then calculate new row
+            TickerTotal = TickerTotal + ws.Cells(i, 7).Value
+            VolCount = VolCount + 1
+            
+      End If
 
 
